@@ -73,6 +73,7 @@ const ServiceLogList = () => {
         const searchTerm = search.toLowerCase();
         const matchesSearch = (
             (log.device?.assetTag || '').toLowerCase().includes(searchTerm) ||
+            (log.device?.assignedUser || '').toLowerCase().includes(searchTerm) ||
             (log.description || '').toLowerCase().includes(searchTerm) ||
             (log.servicedBy || '').toLowerCase().includes(searchTerm) ||
             (log.device?.deviceType || '').toLowerCase().includes(searchTerm) ||
@@ -390,10 +391,8 @@ const ServiceLogList = () => {
                                                 <ArticleIcon fontSize="small" />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-black text-blue-600 text-xs tracking-tighter uppercase font-mono">
-                                                    {log.device?.assetTag && log.device.assetTag !== 'Unknown'
-                                                        ? log.device.assetTag
-                                                        : (log.servicedBy || 'Unknown')}
+                                                <span className="font-black text-blue-600 text-xs tracking-tighter font-mono">
+                                                    {log.device?.assignedUser || 'Unassigned'}
                                                 </span>
                                                 <span className="text-[10px] text-slate-400 font-bold truncate max-w-[120px] uppercase tracking-tight">{log.device?.brand} {log.device?.model}</span>
                                             </div>
