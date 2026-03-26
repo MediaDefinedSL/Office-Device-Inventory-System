@@ -390,7 +390,11 @@ const ServiceLogList = () => {
                                                 <ArticleIcon fontSize="small" />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-black text-blue-600 text-xs tracking-tighter uppercase font-mono">{log.device?.assetTag || 'Unknown'}</span>
+                                                <span className="font-black text-blue-600 text-xs tracking-tighter uppercase font-mono">
+                                                    {log.device?.assetTag && log.device.assetTag !== 'Unknown'
+                                                        ? log.device.assetTag
+                                                        : (log.servicedBy || 'Unknown')}
+                                                </span>
                                                 <span className="text-[10px] text-slate-400 font-bold truncate max-w-[120px] uppercase tracking-tight">{log.device?.brand} {log.device?.model}</span>
                                             </div>
                                         </div>
