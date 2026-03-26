@@ -1,0 +1,31 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/index.js",
+            "use": "@vercel/node"
+        },
+        {
+            "src": "Frontend/dist/**",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/index.js"
+        },
+        {
+            "src": "/assets/(.*)",
+            "dest": "/Frontend/dist/assets/$1"
+        },
+        {
+            "src": "/vite.svg",
+            "dest": "/Frontend/dist/vite.svg"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/Frontend/dist/index.html"
+        }
+    ]
+}
