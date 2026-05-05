@@ -60,6 +60,9 @@ app.use("/api/notifications", notificationRoutes);
 const ticketRoutes = require("../Backend/routes/ticketRoutes");
 app.use("/api/tickets", ticketRoutes);
 
+const purchaseRoutes = require("../Backend/routes/purchaseRoutes");
+app.use("/api/purchases", purchaseRoutes);
+
 // Health check
 app.get("/api", (req, res) => {
     res.json({ message: "Office Device Inventory API is running!" });
