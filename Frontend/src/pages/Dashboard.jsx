@@ -148,7 +148,7 @@ const Dashboard = () => {
                                             <span className="text-slate-400 font-medium">
                                                 {(() => {
                                                     const d = new Date(activity.serviceDate);
-                                                    return `${d.getFullYear()}-${d.toLocaleString('en-US', { month: 'short' })}-${String(d.getDate()).padStart(2, '0')}`;
+                                                    return `${d.getFullYear()} - ${d.toLocaleString('en-US', { month: 'long' })} - ${String(d.getDate()).padStart(2, '0')}`;
                                                 })()}
                                             </span> - {activity.device?.assetTag || 'Device'} Service
                                         </p>
