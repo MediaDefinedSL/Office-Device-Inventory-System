@@ -145,7 +145,12 @@ const Dashboard = () => {
                                     <div className="w-2 h-2 rounded-full bg-slate-200 mt-2.5 group-hover:bg-blue-400 transition-colors"></div>
                                     <div className="flex-1 pb-6 border-b border-slate-50 last:border-0 last:pb-0">
                                         <p className="text-sm font-bold text-slate-700">
-                                            <span className="text-slate-400 font-medium">{new Date(activity.serviceDate).toLocaleDateString()}</span> - {activity.device?.assetTag || 'Device'} Service
+                                            <span className="text-slate-400 font-medium">
+                                                {(() => {
+                                                    const d = new Date(activity.serviceDate);
+                                                    return `${d.getFullYear()}-${d.toLocaleString('en-US', { month: 'short' })}-${String(d.getDate()).padStart(2, '0')}`;
+                                                })()}
+                                            </span> - {activity.device?.assetTag || 'Device'} Service
                                         </p>
                                         <p className="text-sm text-slate-500 mt-1">{activity.description}</p>
                                     </div>
