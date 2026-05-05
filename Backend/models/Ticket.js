@@ -27,6 +27,13 @@ const ticketSchema = new mongoose.Schema({
     },
     adminNotes: {
         type: String
+    },
+    resolutionNote: {
+        type: String
+    },
+    linkedPurchase: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Purchase'
     }
 }, { timestamps: true });
 

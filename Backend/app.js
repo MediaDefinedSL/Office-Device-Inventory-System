@@ -34,6 +34,9 @@ app.use("/api/notifications", notificationRoutes);
 const ticketRoutes = require("./routes/ticketRoutes");
 app.use("/api/tickets", ticketRoutes);
 
+const purchaseRoutes = require("./routes/purchaseRoutes");
+app.use("/api/purchases", purchaseRoutes);
+
 app.get("/", (req, res) => {
     res.json({ message: "Office Device Inventory API is running!" });
 });

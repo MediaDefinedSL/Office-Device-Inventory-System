@@ -19,14 +19,15 @@ import {
     MenuItem,
     Avatar
 } from '@mui/material';
-import { getAllTickets, updateTicket, deleteTicket } from '../services/api';
+import { getAllTickets, updateTicket, deleteTicket, getAllPurchases } from '../services/api';
 import toast from 'react-hot-toast';
 
 function TicketManagement() {
     const [tickets, setTickets] = useState([]);
+    const [purchases, setPurchases] = useState([]);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
-    const [manageForm, setManageForm] = useState({ status: '', adminNotes: '' });
+    const [manageForm, setManageForm] = useState({ status: '', adminNotes: '', resolutionNote: '', linkedPurchase: '' });
 
     useEffect(() => {
         fetchTickets();
@@ -34,11 +35,15 @@ function TicketManagement() {
 
     const fetchTickets = async () => {
         try {
-            const { data } = await getAllTickets();
-            setTickets(data);
+            const [{ data: ticketsData }, { data: purchasesData }] = await Promise.all([
+                getAllTickets(),
+                getAllPurchases()
+            ]);
+            setTickets(ticketsData);
+            setPurchases(purchasesData);
         } catch (error) {
-            console.error('Error fetching tickets:', error);
-            toast.error('Failed to load tickets');
+            console.error('Error fetching data:', error);
+            toast.error('Failed to load tickets or purchases');
         }
     };
 
@@ -46,7 +51,9 @@ function TicketManagement() {
         setSelectedTicket(ticket);
         setManageForm({
             status: ticket.status,
-            adminNotes: ticket.adminNotes || ''
+            adminNotes: ticket.adminNotes || '',
+            resolutionNote: ticket.resolutionNote || '',
+            linkedPurchase: ticket.linkedPurchase ? (typeof ticket.linkedPurchase === 'object' ? ticket.linkedPurchase._id : ticket.linkedPurchase) : ''
         });
         setIsManageModalOpen(true);
     };
@@ -191,6 +198,14 @@ function TicketManagement() {
                                     <Typography variant="caption" color="text.secondary">Priority</Typography>
                                     <Typography variant="body2">{selectedTicket.priority}</Typography>
                                 </Box>
+                                {selectedTicket.linkedPurchase && (
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary">Linked Invoice</Typography>
+                                        <Typography variant="body2" color="primary">
+                                            {selectedTicket.linkedPurchase.invoiceNumber || selectedTicket.linkedPurchase.vendor || 'View Purchase'}
+                                        </Typography>
+                                    </Box>
+                                )}
                             </Box>
                         </Box>
                     )}
@@ -218,6 +233,39 @@ function TicketManagement() {
                         onChange={(e) => setManageForm({ ...manageForm, adminNotes: e.target.value })}
                         margin="normal"
                     />
+
+                    {manageForm.status === 'Resolved' && (
+                        <>
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={3}
+                                label="Resolution Note / Fix Description"
+                                placeholder="Describe how this issue was resolved..."
+                                value={manageForm.resolutionNote}
+                                onChange={(e) => setManageForm({ ...manageForm, resolutionNote: e.target.value })}
+                                margin="normal"
+                            />
+                            <TextField
+                                select
+                                fullWidth
+                                label="Link a Purchase Order / Invoice (Optional)"
+                                value={manageForm.linkedPurchase}
+                                onChange={(e) => setManageForm({ ...manageForm, linkedPurchase: e.target.value })}
+                                margin="normal"
+                                helperText="Did you buy a part for this fix? Link it here."
+                            >
+                                <MenuItem value=""><em>None</em></MenuItem>
+                                {purchases.map((purchase) => (
+                                    <MenuItem key={purchase._id} value={purchase._id}>
+                                        {purchase.invoiceNumber ? `Invoice: ${purchase.invoiceNumber}` : 'Purchase'} 
+                                        {purchase.vendor && ` from ${purchase.vendor}`} 
+                                        {` - Rs.${purchase.totalCost} on ${new Date(purchase.purchaseDate).toLocaleDateString()}`}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+                        </>
+                    )}
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
                     <Button onClick={() => setIsManageModalOpen(false)} color="inherit">Cancel</Button>
