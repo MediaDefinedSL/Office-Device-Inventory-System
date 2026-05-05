@@ -3,12 +3,6 @@ name: Deploy to Vercel
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
-
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
   deploy:
@@ -23,22 +17,18 @@ jobs:
         with:
           node-version: 20
 
-      # Install frontend dependencies
       - name: Install Frontend dependencies
         run: |
           cd Frontend
           npm install
 
-      # Build frontend (Vite creates dist/)
-      - name: Build Frontend
+      - name: Build Frontend (Vite)
         run: |
           cd Frontend
           npm run build
 
-      # Install Vercel CLI
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # Deploy directly (NO vercel build, NO prebuilt)
-      - name: Deploy to Vercel
-        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy to Vercel (NO build step)
+        run: vercel deploy ./Frontend --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
