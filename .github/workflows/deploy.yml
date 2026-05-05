@@ -17,18 +17,26 @@ jobs:
         with:
           node-version: 20
 
+      # Install frontend dependencies
       - name: Install Frontend dependencies
         run: |
           cd Frontend
           npm install
 
-      - name: Build Frontend (Vite)
+      # Build frontend using Vite
+      - name: Build Frontend
         run: |
           cd Frontend
           npm run build
 
+      # Install Vercel CLI
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Deploy to Vercel (NO build step)
+      # Force correct project link (IMPORTANT FIX)
+      - name: Link Vercel Project
+        run: vercel link --yes --project office-device-inventory-system --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Deploy without auto-detection errors
+      - name: Deploy to Vercel
         run: vercel deploy ./Frontend --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
