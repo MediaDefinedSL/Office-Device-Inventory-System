@@ -12,7 +12,7 @@ console.log('--- Service Log Routes Loaded ---');
 router.get('/', protect, async (req, res) => {
     try {
         const logs = await ServiceLog.find()
-            .populate('device', 'assetTag deviceType brand model')
+            .populate('device', 'assetTag assignedUser deviceType brand model')
             .sort({ serviceDate: -1 });
         res.json(logs);
     } catch (err) {
@@ -86,7 +86,7 @@ router.get('/upcoming', protect, async (req, res) => {
         const logs = await ServiceLog.find({
             nextServiceDate: { $lte: sevenDaysFromNow, $gte: now }
         })
-            .populate('device', 'assetTag model deviceType')
+            .populate('device', 'assetTag assignedUser model deviceType')
             .sort({ nextServiceDate: 1 });
 
         res.json(logs);
@@ -101,7 +101,7 @@ router.get('/upcoming', protect, async (req, res) => {
 router.get('/recent', protect, async (req, res) => {
     try {
         const logs = await ServiceLog.find()
-            .populate('device', 'assetTag deviceType')
+            .populate('device', 'assetTag assignedUser deviceType')
             .sort({ createdAt: -1 })
             .limit(5);
         res.json(logs);
@@ -116,7 +116,7 @@ router.get('/recent', protect, async (req, res) => {
 router.get('/type/repair', protect, async (req, res) => {
     try {
         const logs = await ServiceLog.find({ logType: "Repair" })
-            .populate('device', 'assetTag deviceType brand model')
+            .populate('device', 'assetTag assignedUser deviceType brand model')
             .sort({ serviceDate: -1 });
         res.json(logs);
     } catch (err) {
