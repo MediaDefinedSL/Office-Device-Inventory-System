@@ -23,21 +23,22 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies (Frontend)
+      # Install frontend dependencies
+      - name: Install Frontend dependencies
         run: |
           cd Frontend
           npm install
 
+      # Build frontend (Vite creates dist/)
       - name: Build Frontend
         run: |
           cd Frontend
           npm run build
 
+      # Install Vercel CLI
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Pull Vercel Environment
-        run: vercel pull --yes --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy to Vercel (Production)
+      # Deploy directly (NO vercel build, NO prebuilt)
+      - name: Deploy to Vercel
         run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
