@@ -62,4 +62,9 @@ export const markNotificationRead = (id) => api.put(`/notifications/${id}/read`)
 export const markAllNotificationsRead = () => api.put('/notifications/read-all');
 export const deleteNotification = (id) => api.delete(`/notifications/${id}`);
 
+// Purchases
+export const createPurchase = (data) => api.post('/purchases', data);
+export const getAllPurchases = () => api.get('/purchases');
+export const deletePurchase = (id) => api.delete(`/purchases/${id}`);
+
 export default api;

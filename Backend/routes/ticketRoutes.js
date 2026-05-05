@@ -68,14 +68,15 @@ router.get("/", protect, authorize('Admin'), async (req, res) => {
 // Update ticket status (IT Admin)
 router.put("/:id", protect, authorize('Admin'), async (req, res) => {
     try {
-        const { status, adminNotes } = req.body;
+        const { status, adminNotes, resolutionNote, linkedPurchase } = req.body;
         const ticket = await Ticket.findByIdAndUpdate(
             req.params.id, 
-            { status, adminNotes }, 
+            { status, adminNotes, resolutionNote, linkedPurchase }, 
             { new: true, runValidators: true }
         )
         .populate('device', 'brand model assetTag serialNumber')
-        .populate('reportedBy', 'name email');
+        .populate('reportedBy', 'name email')
+        .populate('linkedPurchase', 'invoiceNumber vendor');
         
         if (!ticket) return res.status(404).json({ error: "Ticket not found" });
 
