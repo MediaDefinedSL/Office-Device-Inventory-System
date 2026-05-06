@@ -23,6 +23,7 @@ import {
     Save as SaveIcon
 } from '@mui/icons-material';
 import { getUserProfile, updateUserProfile, updateUserPassword } from '../services/api';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const Settings = () => {
     const [profile, setProfile] = useState({ name: '', email: '' });
@@ -100,11 +101,7 @@ const Settings = () => {
     };
 
     if (loading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-                <CircularProgress />
-            </Box>
-        );
+        return <SkeletonLoader />;
     }
 
     return (

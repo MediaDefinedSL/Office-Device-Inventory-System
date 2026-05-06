@@ -13,6 +13,7 @@ import {
 } from '@mui/icons-material';
 import { getDashboardAnalytics, getRecentServiceLogs, getUpcomingServiceLogs, getDevicesUnderRepair, getDevices, getAllServiceLogs } from '../services/api';
 import { Warning as WarningIcon, Engineering as EngineeringIcon, AccessTime as AccessTimeIcon, Shield as ShieldIcon } from '@mui/icons-material';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const Dashboard = () => {
     const [analytics, setAnalytics] = useState(null);
@@ -96,11 +97,7 @@ const Dashboard = () => {
     // recentActivity is now dynamic state
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
+        return <SkeletonLoader />;
     }
 
     return (

@@ -17,6 +17,7 @@ import {
 } from '@mui/icons-material';
 import { getMyDevices, getMyTickets, createTicket, registerMyDevice } from '../services/api';
 import toast from 'react-hot-toast';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 function EmployeeDashboard() {
     const [devices, setDevices] = useState([]);
@@ -110,11 +111,7 @@ function EmployeeDashboard() {
     };
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
+        return <SkeletonLoader />;
     }
 
     const openTicketsCount = tickets.filter(t => t.status !== 'Resolved').length;

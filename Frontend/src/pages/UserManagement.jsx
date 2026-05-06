@@ -9,6 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
@@ -90,11 +91,7 @@ const UserManagement = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex justify-center items-center h-full min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
+        return <SkeletonLoader />;
     }
 
     return (
