@@ -12,6 +12,7 @@ import {
 import { getDevicesUnderRepair, getRepairLogs, updateDevice, createServiceLog, getDevices, getAllServiceLogs, deleteServiceLog } from '../services/api';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const RepairTracking = () => {
     const [devicesUnderRepair, setDevicesUnderRepair] = useState([]);
@@ -154,11 +155,7 @@ const RepairTracking = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
+        return <SkeletonLoader />;
     }
 
     return (

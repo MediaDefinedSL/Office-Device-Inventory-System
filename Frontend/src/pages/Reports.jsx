@@ -12,6 +12,7 @@ import {
     CalendarToday as DateIcon
 } from '@mui/icons-material';
 import { getReportAnalytics } from '../services/api';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const Reports = () => {
     const [data, setData] = useState(null);
@@ -45,11 +46,7 @@ const Reports = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
+        return <SkeletonLoader />;
     }
 
 
