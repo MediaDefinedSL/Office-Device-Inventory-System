@@ -310,9 +310,13 @@ const RepairTracking = () => {
                                                 <p className="text-[10px] text-slate-400 font-medium">{new Date(log.serviceDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-blue-600">{log.device?.assetTag}</span>
-                                                    <span className="text-[10px] font-medium text-slate-400">{log.device?.model}</span>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="text-sm font-bold text-blue-600">
+                                                        {log.device?.brand ? `${log.device.brand} ` : ''}{log.device?.model || 'Unknown Device'}
+                                                    </span>
+                                                    <span className="text-[11px] font-medium text-slate-500">
+                                                        User: {log.device?.assignedUser || 'Unassigned'}
+                                                    </span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">

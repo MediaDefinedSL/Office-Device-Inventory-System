@@ -16,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 const statusOptions = ['Active', 'Under Repair', 'Retired'];
 const operatingSystemOptions = ['Windows 10', 'Windows 11', 'macOS', 'Linux', 'Other'];
 const storageTypeOptions = ['HDD', 'SSD', 'NVMe'];
+const departmentOptions = ['DB', 'QA', 'UI', 'Engineering', 'Admin'];
 
 function DeviceForm() {
     const { id } = useParams();
@@ -205,9 +206,14 @@ function DeviceForm() {
                                 fullWidth
                                 label="Department"
                                 name="department"
+                                select
                                 value={formData.department}
                                 onChange={handleChange}
-                            />
+                            >
+                                {departmentOptions.map(option => (
+                                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                                ))}
+                            </TextField>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
