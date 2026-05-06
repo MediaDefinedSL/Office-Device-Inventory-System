@@ -5,12 +5,14 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
 import { getAllPurchases, createPurchase, deletePurchase, getAllUsers, getDevices } from '../services/api';
+import SkeletonLoader from '../components/SkeletonLoader';
 import toast from 'react-hot-toast';
 
 function Purchases() {
     const [purchases, setPurchases] = useState([]);
     const [users, setUsers] = useState([]);
     const [devices, setDevices] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     
     // Form State
@@ -26,6 +28,7 @@ function Purchases() {
     }, []);
 
     const fetchData = async () => {
+        setLoading(true);
         try {
             const [purchasesRes, usersRes, devicesRes] = await Promise.all([
                 getAllPurchases(),
@@ -38,6 +41,8 @@ function Purchases() {
         } catch (error) {
             console.error('Error fetching data:', error);
             toast.error('Failed to load purchases data');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -125,7 +130,9 @@ function Purchases() {
                 </Button>
             </Box>
 
-            {purchases.length === 0 ? (
+            {loading ? (
+                <SkeletonLoader />
+            ) : purchases.length === 0 ? (
                 <Paper sx={{ p: 5, textAlign: 'center', borderRadius: 4 }}>
                     <ShoppingCartIcon sx={{ fontSize: 60, color: 'text.secondary', opacity: 0.5, mb: 2 }} />
                     <Typography variant="h6" color="text.secondary">No purchases recorded yet</Typography>
