@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Device = require('../models/Device');
 const { protect } = require('../middleware/authMiddleware');
+const Purchase = require('../models/Purchase');
 
 // @desc    Get dashboard analytics
 // @route   GET /api/analytics/dashboard
@@ -61,12 +62,13 @@ router.get('/reports', protect, async (req, res) => {
     try {
         const ServiceLog = require('../models/ServiceLog');
 
-        // 1. Monthly service cost for the last 12 months
+        // 1. Date range for last 12 months
         const twelveMonthsAgo = new Date();
         twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
         twelveMonthsAgo.setDate(1);
         twelveMonthsAgo.setHours(0, 0, 0, 0);
 
+        // 2. Monthly service cost (all types)
         const monthlySpending = await ServiceLog.aggregate([
             {
                 $match: {
@@ -85,18 +87,94 @@ router.get('/reports', protect, async (req, res) => {
             { $sort: { "_id.year": 1, "_id.month": 1 } }
         ]);
 
-        // 2. Distribution of devices by brand
+        // 3. Monthly REPAIR costs only
+        const monthlyRepairSpending = await ServiceLog.aggregate([
+            {
+                $match: {
+                    serviceDate: { $gte: twelveMonthsAgo },
+                    serviceType: 'Repair'
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$serviceDate" },
+                        month: { $month: "$serviceDate" }
+                    },
+                    total: { $sum: "$cost" }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]);
+
+        // 4. Monthly SERVICE costs only
+        const monthlyServiceSpending = await ServiceLog.aggregate([
+            {
+                $match: {
+                    serviceDate: { $gte: twelveMonthsAgo },
+                    serviceType: { $in: ['Maintenance', 'Service'] }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$serviceDate" },
+                        month: { $month: "$serviceDate" }
+                    },
+                    total: { $sum: "$cost" }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]);
+
+        // 5. Monthly PURCHASE costs
+        const monthlyPurchaseSpending = await Purchase.aggregate([
+            {
+                $match: {
+                    purchaseDate: { $gte: twelveMonthsAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$purchaseDate" },
+                        month: { $month: "$purchaseDate" }
+                    },
+                    total: { $sum: "$totalCost" }
+                }
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } }
+        ]);
+
+        // 6. Distribution of devices by brand
         const brandDistribution = await Device.aggregate([
             { $group: { _id: "$brand", count: { $sum: 1 } } },
             { $sort: { count: -1 } }
         ]);
 
-        // 3. Totals
+        // 7. Totals - Repair
+        const totalRepairCostRes = await ServiceLog.aggregate([
+            { $match: { serviceType: 'Repair' } },
+            { $group: { _id: null, total: { $sum: "$cost" } } }
+        ]);
+
+        // 8. Totals - Service/Maintenance
+        const totalServiceCostRes = await ServiceLog.aggregate([
+            { $match: { serviceType: { $in: ['Maintenance', 'Service'] } } },
+            { $group: { _id: null, total: { $sum: "$cost" } } }
+        ]);
+
+        // 9. Totals - All Maintenance (combined)
         const totalMaintenanceCostRes = await ServiceLog.aggregate([
             { $group: { _id: null, total: { $sum: "$cost" } } }
         ]);
 
-        // 4. Upcoming services (next 30 days)
+        // 10. Totals - Purchases
+        const totalPurchaseCostRes = await Purchase.aggregate([
+            { $group: { _id: null, total: { $sum: "$totalCost" } } }
+        ]);
+
+        // 11. Upcoming services (next 30 days)
         const now = new Date();
         const thirtyDaysLater = new Date();
         thirtyDaysLater.setDate(now.getDate() + 30);
@@ -105,8 +183,37 @@ router.get('/reports', protect, async (req, res) => {
             nextServiceDate: { $gte: now, $lte: thirtyDaysLater }
         });
 
+        // 12. Recent repair and service logs for detailed reports
+        const recentRepairs = await ServiceLog.find({ serviceType: 'Repair' })
+            .populate('device', 'assetTag brand model')
+            .sort({ serviceDate: -1 })
+            .limit(50);
+
+        const recentServices = await ServiceLog.find({ serviceType: { $in: ['Maintenance', 'Service'] } })
+            .populate('device', 'assetTag brand model')
+            .sort({ serviceDate: -1 })
+            .limit(50);
+
+        // 13. All purchases for detailed report
+        const allPurchases = await Purchase.find()
+            .populate('items.assignedUser', 'name')
+            .populate('items.assignedDevice', 'assetTag brand model')
+            .sort({ purchaseDate: -1 });
+
         res.json({
             monthlySpending: monthlySpending.map(item => ({
+                month: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
+                amount: item.total
+            })),
+            monthlyRepairSpending: monthlyRepairSpending.map(item => ({
+                month: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
+                amount: item.total
+            })),
+            monthlyServiceSpending: monthlyServiceSpending.map(item => ({
+                month: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
+                amount: item.total
+            })),
+            monthlyPurchaseSpending: monthlyPurchaseSpending.map(item => ({
                 month: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
                 amount: item.total
             })),
@@ -116,7 +223,15 @@ router.get('/reports', protect, async (req, res) => {
             })),
             totals: {
                 maintenanceCost: totalMaintenanceCostRes[0]?.total || 0,
+                repairCost: totalRepairCostRes[0]?.total || 0,
+                serviceCost: totalServiceCostRes[0]?.total || 0,
+                purchaseCost: totalPurchaseCostRes[0]?.total || 0,
                 upcomingServices: upcomingServicesCount
+            },
+            details: {
+                recentRepairs,
+                recentServices,
+                allPurchases
             }
         });
     } catch (err) {
