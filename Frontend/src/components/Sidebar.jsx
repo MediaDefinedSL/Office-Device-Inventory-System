@@ -12,6 +12,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import CloseIcon from '@mui/icons-material/Close';
 import PeopleIcon from '@mui/icons-material/People';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
@@ -32,6 +33,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
             { name: 'Service Logs', icon: <HistoryIcon />, path: '/service-logs' },
             { name: 'Repair Tracking', icon: <BuildIcon />, path: '/repair-tracking' },
             { name: 'Purchases', icon: <ShoppingCartIcon />, path: '/purchases' },
+            { name: 'Assignment History', icon: <SwapHorizIcon />, path: '/assignment-history' },
             { name: 'Reports', icon: <AssessmentIcon />, path: '/reports' },
         ];
     }

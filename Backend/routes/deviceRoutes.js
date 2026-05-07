@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const Device = require("../models/Device");
+const DeviceAssignmentHistory = require("../models/DeviceAssignmentHistory");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
 // Add Device (Admin only)
@@ -100,6 +101,31 @@ router.get("/:id", protect, async (req, res) => {
     }
 });
 
+// Get Assignment History for a Device
+router.get("/:id/assignment-history", protect, async (req, res) => {
+    try {
+        const history = await DeviceAssignmentHistory.find({ device: req.params.id })
+            .sort({ assignmentDate: -1 })
+            .populate('assignedBy', 'name email');
+        res.json(history);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get All Assignment History (Admin only)
+router.get("/assignment-history/all", protect, authorize('Admin'), async (req, res) => {
+    try {
+        const history = await DeviceAssignmentHistory.find()
+            .sort({ assignmentDate: -1 })
+            .populate('device', 'brand model serialNumber assetTag')
+            .populate('assignedBy', 'name email');
+        res.json(history);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Update Device (Admin only)
 router.put("/:id", protect, authorize('Admin'), async (req, res) => {
     try {
@@ -107,6 +133,27 @@ router.put("/:id", protect, authorize('Admin'), async (req, res) => {
         if (!oldDevice) return res.status(404).json({ error: "Device not found" });
 
         const device = await Device.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+
+        // If assignedUser changed, create assignment history entry
+        if (req.body.assignedUser !== undefined && req.body.assignedUser !== oldDevice.assignedUser) {
+            try {
+                const historyEntry = new DeviceAssignmentHistory({
+                    device: device._id,
+                    previousUser: oldDevice.assignedUser || null,
+                    newUser: req.body.assignedUser || null,
+                    assignedBy: req.user._id,
+                    assignedByName: req.user.name,
+                    assignmentDate: new Date(),
+                    notes: req.body.assignmentNotes || '',
+                    reassignmentReason: req.body.reassignmentReason || 'Other'
+                });
+                await historyEntry.save();
+                console.log(`✅ Logged assignment change for device ${device.assetTag || device.serialNumber}: ${oldDevice.assignedUser || 'Unassigned'} → ${req.body.assignedUser || 'Unassigned'}`);
+            } catch (historyError) {
+                console.error("❌ Failed to create assignment history entry:", historyError);
+                // We don't want to fail the whole update if history logging fails
+            }
+        }
 
         // If status changed, create a service log entry
         if (req.body.status && req.body.status !== oldDevice.status) {

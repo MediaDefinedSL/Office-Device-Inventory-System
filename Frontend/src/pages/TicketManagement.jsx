@@ -20,11 +20,13 @@ import {
     Avatar
 } from '@mui/material';
 import { getAllTickets, updateTicket, deleteTicket, getAllPurchases } from '../services/api';
+import SkeletonLoader from '../components/SkeletonLoader';
 import toast from 'react-hot-toast';
 
 function TicketManagement() {
     const [tickets, setTickets] = useState([]);
     const [purchases, setPurchases] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
     const [manageForm, setManageForm] = useState({ status: '', adminNotes: '', resolutionNote: '', linkedPurchase: '' });
@@ -34,6 +36,7 @@ function TicketManagement() {
     }, []);
 
     const fetchTickets = async () => {
+        setLoading(true);
         try {
             const [{ data: ticketsData }, { data: purchasesData }] = await Promise.all([
                 getAllTickets(),
@@ -44,6 +47,8 @@ function TicketManagement() {
         } catch (error) {
             console.error('Error fetching data:', error);
             toast.error('Failed to load tickets or purchases');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -117,6 +122,9 @@ function TicketManagement() {
                 />
             </Box>
 
+            {loading ? (
+                <SkeletonLoader />
+            ) : (
             <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 4 }}>
                 <Table>
                     <TableHead sx={{ bgcolor: 'grey.50' }}>
@@ -179,6 +187,7 @@ function TicketManagement() {
                     </TableBody>
                 </Table>
             </TableContainer>
+            )}
 
             {/* Manage Ticket Modal */}
             <Dialog open={isManageModalOpen} onClose={() => setIsManageModalOpen(false)} maxWidth="sm" fullWidth>

@@ -67,4 +67,8 @@ export const createPurchase = (data) => api.post('/purchases', data);
 export const getAllPurchases = () => api.get('/purchases');
 export const deletePurchase = (id) => api.delete(`/purchases/${id}`);
 
+// Device Assignment History
+export const getDeviceAssignmentHistory = (deviceId) => api.get(`/devices/${deviceId}/assignment-history`);
+export const getAllAssignmentHistory = () => api.get('/devices/assignment-history/all');
+
 export default api;

@@ -15,6 +15,7 @@ import RepairTracking from './pages/RepairTracking'
 import TicketManagement from './pages/TicketManagement'
 import UserManagement from './pages/UserManagement'
 import Purchases from './pages/Purchases'
+import AssignmentHistory from './pages/AssignmentHistory'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './components/Layout'
 import { Toaster } from 'react-hot-toast'
@@ -92,6 +93,11 @@ function App() {
                         <Route path="/purchases" element={
                             <ProtectedRoute>
                                 <Purchases />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/assignment-history" element={
+                            <ProtectedRoute>
+                                <AssignmentHistory />
                             </ProtectedRoute>
                         } />
                     </Routes>
