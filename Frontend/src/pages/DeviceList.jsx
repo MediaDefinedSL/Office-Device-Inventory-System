@@ -37,6 +37,7 @@ import { useAuth } from '../context/AuthContext';
 import QRCodeModal from '../components/QRCodeModal';
 import QRScannerModal from '../components/QRScannerModal';
 import AssignmentHistoryModal from '../components/AssignmentHistoryModal';
+import DeviceListSkeleton from '../components/DeviceListSkeleton';
 
 function DeviceList() {
     const { user } = useAuth();
@@ -52,17 +53,21 @@ function DeviceList() {
     const [historyDevice, setHistoryDevice] = useState(null);
     const [assignmentHistory, setAssignmentHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
+    const [loadingDevices, setLoadingDevices] = useState(true);
 
     useEffect(() => {
         fetchDevices();
     }, []);
 
     const fetchDevices = async () => {
+        setLoadingDevices(true);
         try {
             const response = await getDevices();
             setDevices(response.data);
         } catch (error) {
             console.error('Error fetching devices:', error);
+        } finally {
+            setLoadingDevices(false);
         }
     };
 
@@ -354,8 +359,11 @@ function DeviceList() {
                 </div>
             )}
 
+            {/* Loading Skeleton */}
+            {loadingDevices && <DeviceListSkeleton />}
+
             {/* Screen UI - Header Area */}
-            <Box className="print:hidden" sx={{ maxWidth: '1800px', mx: 'auto' }}>
+            <Box className={`print:hidden ${loadingDevices ? 'hidden' : ''}`} sx={{ maxWidth: '1800px', mx: 'auto' }}>
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', xl: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', xl: 'center' }, gap: 3, mb: 4 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                         <div className="p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
@@ -490,10 +498,29 @@ function DeviceList() {
                                         </div>
                                     </TableCell>
                                     <TableCell sx={{ py: { xl: 2.5 } }}>
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-sm font-bold text-slate-600">{device.hardwareConfig?.operatingSystem || '-'}</span>
-                                            <span className="text-xs text-slate-400 font-medium">{device.hardwareConfig?.cpu}</span>
-                                            <span className="text-xs text-slate-400 font-medium">{device.hardwareConfig?.ram} RAM / {device.hardwareConfig?.storageCapacity} {device.hardwareConfig?.storageType}</span>
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                                                    <span className="text-blue-600 font-bold text-xs">OS</span>
+                                                </div>
+                                                <span className="text-sm font-bold text-slate-700">{device.hardwareConfig?.operatingSystem || '-'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center">
+                                                    <span className="text-purple-600 font-bold text-[10px]">CPU</span>
+                                                </div>
+                                                <span className="text-sm font-medium text-slate-600">{device.hardwareConfig?.cpu || '-'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
+                                                    <span className="text-xs font-bold text-slate-600">{device.hardwareConfig?.ram || '-'}</span>
+                                                    <span className="text-[10px] text-slate-400 uppercase">RAM</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
+                                                    <span className="text-xs font-bold text-slate-600">{device.hardwareConfig?.storageCapacity || '-'}</span>
+                                                    <span className="text-[10px] text-slate-400 uppercase">{device.hardwareConfig?.storageType || 'Storage'}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </TableCell>
                                     <TableCell sx={{ py: { xl: 2.5 } }}>
