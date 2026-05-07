@@ -92,7 +92,10 @@ router.get('/reports', protect, async (req, res) => {
             {
                 $match: {
                     serviceDate: { $gte: twelveMonthsAgo },
-                    serviceType: 'Repair'
+                    $or: [
+                        { logType: 'Repair' },
+                        { serviceType: 'Repair' }
+                    ]
                 }
             },
             {
@@ -112,7 +115,10 @@ router.get('/reports', protect, async (req, res) => {
             {
                 $match: {
                     serviceDate: { $gte: twelveMonthsAgo },
-                    serviceType: { $in: ['Maintenance', 'Service'] }
+                    $or: [
+                        { logType: 'Service' },
+                        { serviceType: { $in: ['Maintenance', 'Service'] } }
+                    ]
                 }
             },
             {
@@ -154,13 +160,27 @@ router.get('/reports', protect, async (req, res) => {
 
         // 7. Totals - Repair
         const totalRepairCostRes = await ServiceLog.aggregate([
-            { $match: { serviceType: 'Repair' } },
+            {
+                $match: {
+                    $or: [
+                        { logType: 'Repair' },
+                        { serviceType: 'Repair' }
+                    ]
+                }
+            },
             { $group: { _id: null, total: { $sum: "$cost" } } }
         ]);
 
-        // 8. Totals - Service/Maintenance
+        // 8. Totals - Service
         const totalServiceCostRes = await ServiceLog.aggregate([
-            { $match: { serviceType: { $in: ['Maintenance', 'Service'] } } },
+            {
+                $match: {
+                    $or: [
+                        { logType: 'Service' },
+                        { serviceType: { $in: ['Maintenance', 'Service'] } }
+                    ]
+                }
+            },
             { $group: { _id: null, total: { $sum: "$cost" } } }
         ]);
 
@@ -184,12 +204,22 @@ router.get('/reports', protect, async (req, res) => {
         });
 
         // 12. Recent repair and service logs for detailed reports
-        const recentRepairs = await ServiceLog.find({ serviceType: 'Repair' })
+        const recentRepairs = await ServiceLog.find({
+            $or: [
+                { logType: 'Repair' },
+                { serviceType: 'Repair' }
+            ]
+        })
             .populate('device', 'assetTag brand model')
             .sort({ serviceDate: -1 })
             .limit(50);
 
-        const recentServices = await ServiceLog.find({ serviceType: { $in: ['Maintenance', 'Service'] } })
+        const recentServices = await ServiceLog.find({
+            $or: [
+                { logType: 'Service' },
+                { serviceType: { $in: ['Maintenance', 'Service'] } }
+            ]
+        })
             .populate('device', 'assetTag brand model')
             .sort({ serviceDate: -1 })
             .limit(50);

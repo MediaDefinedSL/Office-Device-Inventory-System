@@ -82,11 +82,17 @@ const Reports = () => {
         };
 
         // Recalculate totals for filtered data
+        const repairCost = filtered.monthlyRepairSpending.reduce((sum, item) => sum + item.amount, 0);
+        const serviceCost = filtered.monthlyServiceSpending.reduce((sum, item) => sum + item.amount, 0);
+        const purchaseCost = filtered.monthlyPurchaseSpending.reduce((sum, item) => sum + item.amount, 0);
+        const combinedCost = filtered.monthlySpending.reduce((sum, item) => sum + item.amount, 0);
+
         filtered.totals = {
             ...data.totals,
-            repairCost: filtered.monthlyRepairSpending.reduce((sum, item) => sum + item.amount, 0),
-            serviceCost: filtered.monthlyServiceSpending.reduce((sum, item) => sum + item.amount, 0),
-            purchaseCost: filtered.monthlyPurchaseSpending.reduce((sum, item) => sum + item.amount, 0)
+            repairCost,
+            serviceCost,
+            purchaseCost,
+            combinedCost
         };
 
         setFilteredData(filtered);
@@ -321,7 +327,7 @@ const Reports = () => {
                     </div>
                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 print:bg-white print:border-slate-300">
                         <p className="text-slate-600 text-xs font-black uppercase tracking-widest print:text-slate-500">Combined Total</p>
-                        <h4 className="text-2xl font-black text-slate-800 mt-1 print:text-xl">{currency} {((filteredData?.totals?.repairCost || 0) + (filteredData?.totals?.serviceCost || 0)).toLocaleString()}</h4>
+                        <h4 className="text-2xl font-black text-slate-800 mt-1 print:text-xl">{currency} {(filteredData?.totals?.combinedCost || ((filteredData?.totals?.repairCost || 0) + (filteredData?.totals?.serviceCost || 0))).toLocaleString()}</h4>
                     </div>
                 </div>
 
@@ -363,7 +369,7 @@ const Reports = () => {
                                 <td className="p-4 text-sm uppercase tracking-widest">Total</td>
                                 <td className="p-4 text-right tabular-nums print:text-red-600">{currency} {(filteredData?.totals?.repairCost || 0).toLocaleString()}</td>
                                 <td className="p-4 text-right tabular-nums print:text-emerald-600">{currency} {(filteredData?.totals?.serviceCost || 0).toLocaleString()}</td>
-                                <td className="p-4 text-right text-lg tabular-nums">{currency} {((filteredData?.totals?.repairCost || 0) + (filteredData?.totals?.serviceCost || 0)).toLocaleString()}</td>
+                                <td className="p-4 text-right text-lg tabular-nums">{currency} {(filteredData?.totals?.combinedCost || ((filteredData?.totals?.repairCost || 0) + (filteredData?.totals?.serviceCost || 0))).toLocaleString()}</td>
                             </tr>
                         </tfoot>
                     </table>
