@@ -28,13 +28,26 @@ function Register() {
     };
 
     return (
-        <Box sx={{ maxWidth: 420, mx: 'auto', mt: 8 }}>
-            <Paper sx={{ p: 4 }}>
-                <Typography variant="h5" sx={{ mb: 3, textAlign: 'center', fontWeight: 'bold' }}>
+        <Box sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: '#f8fafc',
+            p: 3
+        }}>
+            <Paper sx={{
+                p: { xs: 4, md: 5 },
+                width: '100%',
+                maxWidth: 450,
+                borderRadius: 3,
+                boxShadow: '0 10px 40px rgba(0,0,0,0.08)'
+            }}>
+                <Typography variant="h4" sx={{ mb: 4, textAlign: 'center', fontWeight: 700, color: 'slate.800' }}>
                     Create Account
                 </Typography>
 
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
 
                 <form onSubmit={handleSubmit}>
                     <TextField
@@ -44,6 +57,10 @@ function Register() {
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
+                        sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': { borderRadius: 2 }
+                        }}
                     />
                     <TextField
                         fullWidth
@@ -53,6 +70,10 @@ function Register() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': { borderRadius: 2 }
+                        }}
                     />
                     <TextField
                         fullWidth
@@ -62,21 +83,37 @@ function Register() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        sx={{
+                            mb: 3,
+                            '& .MuiOutlinedInput-root': { borderRadius: 2 }
+                        }}
                     />
 
                     <Button
                         type="submit"
                         fullWidth
                         variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
+                        size="large"
+                        sx={{
+                            mt: 2,
+                            mb: 3,
+                            py: 1.5,
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: '1rem'
+                        }}
                     >
                         Sign Up
                     </Button>
                 </form>
 
-                <Box textAlign="center">
-                    <Link component={RouterLink} to="/login" variant="body2">
-                        {"Already have an account? Sign In"}
+                <Box textAlign="center" sx={{ mt: 2 }}>
+                    <Link component={RouterLink} to="/login" variant="body2" sx={{ color: 'slate.600', textDecoration: 'none', '&:hover': { color: 'blue.600' } }}>
+                        {"Already have an account? "}
+                        <Box component="span" sx={{ fontWeight: 600, color: 'blue.600' }}>
+                            Sign In
+                        </Box>
                     </Link>
                 </Box>
             </Paper>

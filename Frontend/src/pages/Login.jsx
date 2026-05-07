@@ -33,13 +33,26 @@ function Login() {
     };
 
     return (
-        <Box sx={{ maxWidth: 400, mx: 'auto', mt: 8 }}>
-            <Paper sx={{ p: 4 }}>
-                <Typography variant="h5" sx={{ mb: 3, textAlign: 'center', fontWeight: 'bold' }}>
+        <Box sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: '#f8fafc',
+            p: 3
+        }}>
+            <Paper sx={{
+                p: { xs: 4, md: 5 },
+                width: '100%',
+                maxWidth: 450,
+                borderRadius: 3,
+                boxShadow: '0 10px 40px rgba(0,0,0,0.08)'
+            }}>
+                <Typography variant="h4" sx={{ mb: 4, textAlign: 'center', fontWeight: 700, color: 'slate.800' }}>
                     Sign In
                 </Typography>
 
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
 
                 <form onSubmit={handleSubmit}>
                     <TextField
@@ -48,7 +61,12 @@ function Login() {
                         margin="normal"
                         required
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => setEmail(e.target.value.replace(/\s/g, ''))}
+                        error={email.includes(' ')}
+                        helperText={email.includes(' ') ? 'Email cannot contain spaces' : ''}
+                        sx={{
+                            '& .MuiOutlinedInput-root': { borderRadius: 2 }
+                        }}
                     />
                     <TextField
                         fullWidth
@@ -58,20 +76,36 @@ function Login() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        sx={{
+                            mb: 3,
+                            '& .MuiOutlinedInput-root': { borderRadius: 2 }
+                        }}
                     />
                     <Button
                         type="submit"
                         fullWidth
                         variant="contained"
-                        sx={{ mt: 3, mb: 2 }}
+                        size="large"
+                        sx={{
+                            mt: 2,
+                            mb: 3,
+                            py: 1.5,
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: '1rem'
+                        }}
                     >
                         Sign In
                     </Button>
                 </form>
 
-                <Box textAlign="center">
-                    <Link component={RouterLink} to="/register" variant="body2">
-                        {"Don't have an account? Sign Up"}
+                <Box textAlign="center" sx={{ mt: 2 }}>
+                    <Link component={RouterLink} to="/register" variant="body2" sx={{ color: 'slate.600', textDecoration: 'none', '&:hover': { color: 'blue.600' } }}>
+                        {"Don't have an account? "}
+                        <Box component="span" sx={{ fontWeight: 600, color: 'blue.600' }}>
+                            Sign Up
+                        </Box>
                     </Link>
                 </Box>
             </Paper>
