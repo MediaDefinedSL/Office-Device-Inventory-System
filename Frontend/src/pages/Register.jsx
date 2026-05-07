@@ -69,7 +69,9 @@ function Register() {
                         margin="normal"
                         required
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => setEmail(e.target.value.replace(/\s/g, ''))}
+                        error={email.includes(' ')}
+                        helperText={email.includes(' ') ? 'Email cannot contain spaces' : ''}
                         sx={{
                             mb: 2,
                             '& .MuiOutlinedInput-root': { borderRadius: 2 }
