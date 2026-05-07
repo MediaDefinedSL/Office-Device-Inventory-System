@@ -5,9 +5,7 @@ import {
 } from 'recharts';
 import {
     Devices as DevicesIcon,
-    Build as BuildIcon,
     CheckCircle as ActiveIcon,
-    Cancel as RetiredIcon,
     Add as AddIcon,
     FilterList as FilterIcon
 } from '@mui/icons-material';
@@ -81,13 +79,6 @@ const Dashboard = () => {
         fetchData();
     }, []);
 
-    const stats = [
-        { label: 'Total Devices', value: analytics?.totalDevices ?? 0, icon: <DevicesIcon fontSize="large" />, color: 'bg-blue-500 shadow-blue-200' },
-        { label: 'Active Devices', value: analytics?.statusCounts?.['Active'] ?? 0, icon: <ActiveIcon fontSize="large" />, color: 'bg-emerald-500 shadow-emerald-200' },
-        { label: 'Under Repair', value: analytics?.statusCounts?.['Under Repair'] ?? 0, icon: <BuildIcon fontSize="large" />, color: 'bg-orange-500 shadow-orange-200' },
-        { label: 'Retired Devices', value: analytics?.statusCounts?.['Retired'] ?? 0, icon: <RetiredIcon fontSize="large" />, color: 'bg-rose-500 shadow-rose-200' },
-    ];
-
     const pieData = [
         { name: 'Active', value: analytics?.statusCounts?.['Active'] || 0, color: '#10b981' },
         { name: 'Under Repair', value: analytics?.statusCounts?.['Under Repair'] || 0, color: '#f59e0b' },
@@ -106,21 +97,40 @@ const Dashboard = () => {
                 <h1 className="text-3xl font-bold text-slate-800">Dashboard</h1>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat) => (
-                    <div key={stat.label} className={`${stat.color} p-6 rounded-2xl text-white shadow-lg transform transition-all duration-300 hover:scale-[1.02]`}>
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="text-blue-50 font-medium opacity-90">{stat.label}</p>
-                                <h3 className="text-4xl font-bold mt-2">{stat.value}</h3>
-                            </div>
-                            <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                                {stat.icon}
-                            </div>
+            {/* Stats Grid - Single Card */}
+            <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white p-6 rounded-2xl shadow-lg border border-slate-800">
+                <div className="flex items-start justify-between mb-4">
+                    <div>
+                        <p className="text-xs uppercase tracking-wider text-slate-400 font-medium">Inventory Health</p>
+                        <h2 className="mt-2 text-4xl font-black">{analytics?.statusCounts?.['Active'] ?? 0}<span className="text-slate-500 text-2xl">/{analytics?.totalDevices ?? 0}</span></h2>
+                        <p className="mt-1 text-slate-400 text-sm">Active / Total devices</p>
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 text-slate-300">
+                        <DevicesIcon />
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <div className="rounded-xl bg-slate-800/50 p-3">
+                        <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                            <span>Active Ratio</span>
+                            <span className="font-medium text-emerald-400">{analytics?.totalDevices ? Math.round(((analytics?.statusCounts?.['Active'] || 0) / analytics.totalDevices) * 100) : 0}%</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-slate-700 overflow-hidden">
+                            <div className="h-full rounded-full bg-emerald-400 transition-all duration-500" style={{ width: `${analytics?.totalDevices ? Math.round(((analytics?.statusCounts?.['Active'] || 0) / analytics.totalDevices) * 100) : 0}%` }} />
                         </div>
                     </div>
-                ))}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-xl bg-slate-800/50 p-3">
+                            <p className="text-[10px] uppercase tracking-wider text-slate-500">Under Repair</p>
+                            <p className="mt-1 text-2xl font-bold text-orange-400">{analytics?.statusCounts?.['Under Repair'] ?? 0}</p>
+                        </div>
+                        <div className="rounded-xl bg-slate-800/50 p-3">
+                            <p className="text-[10px] uppercase tracking-wider text-slate-500">Retired</p>
+                            <p className="mt-1 text-2xl font-bold text-rose-400">{analytics?.statusCounts?.['Retired'] ?? 0}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -49,6 +49,27 @@ const Reports = () => {
         }
     };
 
+    // Generate all months from earliest data to current month
+    const getAllMonths = () => {
+        if (!data?.monthlySpending || data.monthlySpending.length === 0) return [];
+        
+        const months = data.monthlySpending.map(item => item.month).sort();
+        const earliestMonth = new Date(months[0] + '-01');
+        const currentDate = new Date();
+        
+        const allMonths = [];
+        let current = new Date(earliestMonth);
+        
+        while (current <= currentDate) {
+            const year = current.getFullYear();
+            const month = String(current.getMonth() + 1).padStart(2, '0');
+            allMonths.push(`${year}-${month}`);
+            current.setMonth(current.getMonth() + 1);
+        }
+        
+        return allMonths;
+    };
+
     const handleMonthFilter = (monthValue) => {
         setSelectedMonth(monthValue);
 
@@ -57,7 +78,6 @@ const Reports = () => {
             return;
         }
 
-        // Filter data by selected month
         const filtered = {
             ...data,
             monthlySpending: data.monthlySpending?.filter(item => item.month === monthValue) || [],
@@ -82,10 +102,10 @@ const Reports = () => {
         };
 
         // Recalculate totals for filtered data
-        const repairCost = filtered.monthlyRepairSpending.reduce((sum, item) => sum + item.amount, 0);
-        const serviceCost = filtered.monthlyServiceSpending.reduce((sum, item) => sum + item.amount, 0);
-        const purchaseCost = filtered.monthlyPurchaseSpending.reduce((sum, item) => sum + item.amount, 0);
-        const combinedCost = filtered.monthlySpending.reduce((sum, item) => sum + item.amount, 0);
+        const repairCost = filtered.monthlyRepairSpending?.reduce((sum, item) => sum + item.amount, 0) || 0;
+        const serviceCost = filtered.monthlyServiceSpending?.reduce((sum, item) => sum + item.amount, 0) || 0;
+        const purchaseCost = filtered.monthlyPurchaseSpending?.reduce((sum, item) => sum + item.amount, 0) || 0;
+        const combinedCost = filtered.monthlySpending?.reduce((sum, item) => sum + item.amount, 0) || 0;
 
         filtered.totals = {
             ...data.totals,
@@ -223,12 +243,12 @@ const Reports = () => {
                         <select
                             value={selectedMonth}
                             onChange={(e) => handleMonthFilter(e.target.value)}
-                            className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">All Months</option>
-                            {data?.monthlySpending?.map(item => (
-                                <option key={item.month} value={item.month}>
-                                    {new Date(item.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                            {getAllMonths().map(month => (
+                                <option key={month} value={month}>
+                                    {new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                                 </option>
                             ))}
                         </select>

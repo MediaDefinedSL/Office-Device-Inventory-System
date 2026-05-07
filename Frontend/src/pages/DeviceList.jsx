@@ -28,13 +28,15 @@ import {
     CalendarToday as DateIcon,
     Print as PrintIcon,
     QrCode as QrCodeIcon,
-    QrCodeScanner as QrCodeScannerIcon
+    QrCodeScanner as QrCodeScannerIcon,
+    History as HistoryIcon
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { getDevices, deleteDevice, getDeviceServiceLogs } from '../services/api';
+import { getDevices, deleteDevice, getDeviceServiceLogs, getDeviceAssignmentHistory } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import QRCodeModal from '../components/QRCodeModal';
 import QRScannerModal from '../components/QRScannerModal';
+import AssignmentHistoryModal from '../components/AssignmentHistoryModal';
 
 function DeviceList() {
     const { user } = useAuth();
@@ -47,6 +49,9 @@ function DeviceList() {
     const [loadingLogs, setLoadingLogs] = useState(false);
     const [qrDevice, setQrDevice] = useState(null);
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+    const [historyDevice, setHistoryDevice] = useState(null);
+    const [assignmentHistory, setAssignmentHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
     useEffect(() => {
         fetchDevices();
@@ -87,6 +92,20 @@ function DeviceList() {
             console.error('Error fetching logs for individual report:', error);
         } finally {
             setLoadingLogs(false);
+        }
+    };
+
+    const handleViewAssignmentHistory = async (device) => {
+        setLoadingHistory(true);
+        setHistoryDevice(device);
+        try {
+            const response = await getDeviceAssignmentHistory(device._id);
+            setAssignmentHistory(response.data);
+        } catch (error) {
+            console.error('Error fetching assignment history:', error);
+            setAssignmentHistory([]);
+        } finally {
+            setLoadingHistory(false);
         }
     };
 
@@ -336,22 +355,22 @@ function DeviceList() {
             )}
 
             {/* Screen UI - Header Area */}
-            <Box className="print:hidden">
-                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', lg: 'center' }, gap: 3, mb: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
-                            <ArticleIcon fontSize="medium" />
+            <Box className="print:hidden" sx={{ maxWidth: '1800px', mx: 'auto' }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', xl: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', xl: 'center' }, gap: 3, mb: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <div className="p-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-200">
+                            <ArticleIcon sx={{ fontSize: 32 }} />
                         </div>
                         <div>
-                            <Typography variant="h5" sx={{ fontWeight: 800, color: 'slate.800' }}>Device Inventory</Typography>
-                            <p className="text-sm text-slate-500 font-medium">Manage and track all company hardware assets</p>
+                            <Typography variant="h4" sx={{ fontWeight: 800, color: 'slate.800', fontSize: { xl: '2rem' } }}>Device Inventory</Typography>
+                            <p className="text-base text-slate-500 font-medium">Manage and track all company hardware assets</p>
                         </div>
                     </Box>
 
-                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, flexWrap: 'wrap', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, width: { xs: '100%', lg: 'auto' } }}>
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, flexWrap: 'wrap', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, width: { xs: '100%', xl: 'auto' } }}>
                         <TextField
-                            size="small"
-                            placeholder="Search serial, brand..."
+                            size="medium"
+                            placeholder="Search by serial, brand, model, or user..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             InputProps={{
@@ -362,12 +381,13 @@ function DeviceList() {
                                 ),
                             }}
                             sx={{
-                                width: { xs: '100%', sm: 250 },
+                                width: { xs: '100%', sm: 300, xl: 400 },
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: '12px',
                                     bgcolor: 'white',
                                     '& fieldset': { borderColor: '#f1f5f9' },
                                     '&:hover fieldset': { borderColor: '#e2e8f0' },
+                                    fontSize: { xl: '1rem' }
                                 }
                             }}
                         />
@@ -427,58 +447,65 @@ function DeviceList() {
                     </Box>
                 </Box>
 
-                <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '20px', border: '1px solid #f1f5f9', overflowX: 'auto' }}>
-                    <Table sx={{ minWidth: 1000 }}>
+                <TableContainer component={Paper} elevation={0} sx={{ borderRadius: '20px', border: '1px solid #f1f5f9', overflowX: 'auto', maxWidth: '1800px', mx: 'auto' }}>
+                    <Table sx={{ minWidth: { xs: 1000, xl: 1400 } }}>
                         <TableHead>
                             <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>Device Details</TableCell>
-                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>Identifiers</TableCell>
-                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>Deployment</TableCell>
-                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>Config</TableCell>
-                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>Status</TableCell>
-                                <TableCell align="right" sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em' }}>Actions</TableCell>
+                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: { xs: '11px', xl: '12px' }, letterSpacing: '0.05em', width: { xl: '20%' } }}>Device Details</TableCell>
+                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: { xs: '11px', xl: '12px' }, letterSpacing: '0.05em', width: { xl: '20%' } }}>Identifiers</TableCell>
+                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: { xs: '11px', xl: '12px' }, letterSpacing: '0.05em', width: { xl: '15%' } }}>Deployment</TableCell>
+                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: { xs: '11px', xl: '12px' }, letterSpacing: '0.05em', width: { xl: '20%' } }}>Hardware Config</TableCell>
+                                <TableCell sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: { xs: '11px', xl: '12px' }, letterSpacing: '0.05em', width: { xl: '10%' } }}>Status</TableCell>
+                                <TableCell align="right" sx={{ fontWeight: 800, color: '#64748b', textTransform: 'uppercase', fontSize: { xs: '11px', xl: '12px' }, letterSpacing: '0.05em', width: { xl: '15%' } }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {filteredDevices.map((device) => (
                                 <TableRow key={device._id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <TableCell>
+                                    <TableCell sx={{ py: { xl: 2.5 } }}>
                                         <div className="flex flex-col">
-                                            <span className="font-bold text-slate-800">{device.brand} {device.model}</span>
-                                            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-black w-fit mt-1 uppercase tracking-wider">{device.deviceType}</span>
+                                            <span className="font-bold text-slate-800 text-base">{device.brand} {device.model}</span>
+                                            <div className="flex items-center gap-2 mt-1.5">
+                                                <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-semibold uppercase tracking-wider">{device.deviceType}</span>
+                                                {device.assetTag && (
+                                                    <span className="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg font-semibold">{device.assetTag}</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded w-fit">{device.serialNumber}</span>
+                                    <TableCell sx={{ py: { xl: 2.5 } }}>
+                                        <div className="flex flex-col gap-2">
+                                            <span className="text-sm font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg w-fit">{device.serialNumber}</span>
                                             {device.warrantyExpiryDate && (
-                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 w-fit rounded flex items-center gap-1 ${new Date(device.warrantyExpiryDate) > new Date() ? 'text-emerald-600' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
-                                                    {new Date(device.warrantyExpiryDate) > new Date() ? 'Under Warranty' : 'Out of Warranty'}
+                                                <span className={`text-xs font-bold px-2.5 py-1 w-fit rounded-lg flex items-center gap-1.5 ${new Date(device.warrantyExpiryDate) > new Date() ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
+                                                    {new Date(device.warrantyExpiryDate) > new Date() ? '✓ Under Warranty' : '✗ Out of Warranty'}
                                                 </span>
                                             )}
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-slate-700">{device.assignedUser || 'Unassigned'}</span>
-                                            <span className="text-xs text-slate-400 font-medium">{device.department || 'No Dept'}</span>
+                                    <TableCell sx={{ py: { xl: 2.5 } }}>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-base font-bold text-slate-700">{device.assignedUser || 'Unassigned'}</span>
+                                            <span className="text-sm text-slate-400 font-medium">{device.department || 'No Dept'}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="text-xs font-bold text-slate-600">{device.hardwareConfig?.operatingSystem || '-'}</span>
-                                            <span className="text-[10px] text-slate-400 font-medium italic">{device.hardwareConfig?.ram} / {device.hardwareConfig?.storageCapacity}</span>
+                                    <TableCell sx={{ py: { xl: 2.5 } }}>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-bold text-slate-600">{device.hardwareConfig?.operatingSystem || '-'}</span>
+                                            <span className="text-xs text-slate-400 font-medium">{device.hardwareConfig?.cpu}</span>
+                                            <span className="text-xs text-slate-400 font-medium">{device.hardwareConfig?.ram} RAM / {device.hardwareConfig?.storageCapacity} {device.hardwareConfig?.storageType}</span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell sx={{ py: { xl: 2.5 } }}>
                                         <Chip
                                             label={device.status}
-                                            size="small"
+                                            size="medium"
                                             variant="outlined"
                                             sx={{
-                                                fontWeight: 800,
-                                                fontSize: '10px',
+                                                fontWeight: 700,
+                                                fontSize: { xs: '10px', xl: '12px' },
                                                 textTransform: 'uppercase',
+                                                px: 1,
                                                 bgcolor:
                                                     device.status === 'Active' ? 'success.50' :
                                                         device.status === 'Under Repair' ? 'warning.50' :
@@ -487,39 +514,46 @@ function DeviceList() {
                                                     device.status === 'Active' ? 'success.dark' :
                                                         device.status === 'Under Repair' ? 'warning.dark' :
                                                             'error.dark',
-                                                borderColor: 'currentColor',
-                                                opacity: 0.8
+                                                borderColor: 'currentColor'
                                             }}
                                         />
                                     </TableCell>
-                                    <TableCell align="right">
-                                        <Box className="flex justify-end gap-1">
+                                    <TableCell align="right" sx={{ py: { xl: 2.5 } }}>
+                                        <Box className="flex justify-end" sx={{ gap: { xs: 0.5, xl: 1.5 } }}>
                                             <IconButton
-                                                size="small"
+                                                size="medium"
                                                 color="primary"
                                                 onClick={() => handlePrintIndividual(device)}
-                                                title="Export Individual Report"
+                                                title="Export Report"
                                                 disabled={loadingLogs}
                                                 sx={{ bgcolor: 'blue.50', '&:hover': { bgcolor: 'blue.100' } }}
                                             >
-                                                <ArticleIcon fontSize="small" />
+                                                <ArticleIcon sx={{ fontSize: { xs: 20, xl: 22 } }} />
                                             </IconButton>
                                             <IconButton
-                                                size="small"
+                                                size="medium"
                                                 onClick={() => setQrDevice(device)}
-                                                title="View QR Code"
+                                                title="QR Code"
                                                 sx={{ color: 'slate.400', '&:hover': { color: 'purple.600', bgcolor: 'purple.50' } }}
                                             >
-                                                <QrCodeIcon fontSize="small" />
+                                                <QrCodeIcon sx={{ fontSize: { xs: 20, xl: 22 } }} />
                                             </IconButton>
-                                            <IconButton component={RouterLink} to={`/edit/${device._id}`} size="small" sx={{ color: 'slate.400', '&:hover': { color: 'blue.600', bgcolor: 'blue.50' } }}>
-                                                <EditIcon fontSize="small" />
+                                            <IconButton component={RouterLink} to={`/edit/${device._id}`} size="medium" sx={{ color: 'slate.400', '&:hover': { color: 'blue.600', bgcolor: 'blue.50' } }}>
+                                                <EditIcon sx={{ fontSize: { xs: 20, xl: 22 } }} />
                                             </IconButton>
-                                            <IconButton component={RouterLink} to={`/device/service/${device._id}`} size="small" sx={{ color: 'slate.400', '&:hover': { color: 'orange.600', bgcolor: 'orange.50' } }}>
-                                                <BuildIcon fontSize="small" />
+                                            <IconButton
+                                                size="medium"
+                                                onClick={() => handleViewAssignmentHistory(device)}
+                                                title="History"
+                                                sx={{ color: 'slate.400', '&:hover': { color: 'indigo.600', bgcolor: 'indigo.50' } }}
+                                            >
+                                                <HistoryIcon sx={{ fontSize: { xs: 20, xl: 22 } }} />
                                             </IconButton>
-                                            <IconButton onClick={() => handleDelete(device._id)} size="small" sx={{ color: 'slate.400', '&:hover': { color: 'rose.600', bgcolor: 'rose.50' } }}>
-                                                <DeleteIcon fontSize="small" />
+                                            <IconButton component={RouterLink} to={`/device/service/${device._id}`} size="medium" sx={{ color: 'slate.400', '&:hover': { color: 'orange.600', bgcolor: 'orange.50' } }}>
+                                                <BuildIcon sx={{ fontSize: { xs: 20, xl: 22 } }} />
+                                            </IconButton>
+                                            <IconButton onClick={() => handleDelete(device._id)} size="medium" sx={{ color: 'slate.400', '&:hover': { color: 'rose.600', bgcolor: 'rose.50' } }}>
+                                                <DeleteIcon sx={{ fontSize: { xs: 20, xl: 22 } }} />
                                             </IconButton>
                                         </Box>
                                     </TableCell>
@@ -551,6 +585,16 @@ function DeviceList() {
             <QRScannerModal
                 open={isScannerOpen}
                 onClose={() => setIsScannerOpen(false)}
+            />
+            <AssignmentHistoryModal
+                open={!!historyDevice}
+                onClose={() => {
+                    setHistoryDevice(null);
+                    setAssignmentHistory([]);
+                }}
+                device={historyDevice}
+                history={assignmentHistory}
+                loading={loadingHistory}
             />
         </Box>
     );
