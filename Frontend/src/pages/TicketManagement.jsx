@@ -65,7 +65,17 @@ function TicketManagement() {
 
     const handleSaveChanges = async () => {
         try {
-            await updateTicket(selectedTicket._id, manageForm);
+            const updatePayload = {
+                status: manageForm.status,
+                adminNotes: manageForm.adminNotes,
+                resolutionNote: manageForm.resolutionNote
+            };
+
+            if (manageForm.linkedPurchase) {
+                updatePayload.linkedPurchase = manageForm.linkedPurchase;
+            }
+
+            await updateTicket(selectedTicket._id, updatePayload);
             toast.success('Ticket updated successfully');
             setIsManageModalOpen(false);
             fetchTickets();

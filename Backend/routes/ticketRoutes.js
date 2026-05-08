@@ -69,9 +69,19 @@ router.get("/", protect, authorize('Admin'), async (req, res) => {
 router.put("/:id", protect, authorize('Admin'), async (req, res) => {
     try {
         const { status, adminNotes, resolutionNote, linkedPurchase } = req.body;
+        const updateData = {
+            status,
+            adminNotes,
+            resolutionNote
+        };
+
+        if (linkedPurchase) {
+            updateData.linkedPurchase = linkedPurchase;
+        }
+
         const ticket = await Ticket.findByIdAndUpdate(
             req.params.id, 
-            { status, adminNotes, resolutionNote, linkedPurchase }, 
+            updateData, 
             { new: true, runValidators: true }
         )
         .populate('device', 'brand model assetTag serialNumber')

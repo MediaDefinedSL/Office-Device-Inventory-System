@@ -212,9 +212,16 @@ function Purchases() {
                         </Grid>
                         <Grid item xs={12} sm={4}>
                             <TextField 
-                                fullWidth label="Vendor / Shop Name" 
-                                value={vendor} onChange={e => setVendor(e.target.value)}
-                            />
+                                fullWidth
+                                select
+                                label="Vendor / Shop Name"
+                                value={vendor}
+                                onChange={e => setVendor(e.target.value)}
+                            >
+                                <MenuItem value=""><em>Select vendor</em></MenuItem>
+                                <MenuItem value="Kings laptop">Kings laptop</MenuItem>
+                                <MenuItem value="RDF Computers">RDF Computers</MenuItem>
+                            </TextField>
                         </Grid>
                         <Grid item xs={12} sm={4}>
                             <TextField 
