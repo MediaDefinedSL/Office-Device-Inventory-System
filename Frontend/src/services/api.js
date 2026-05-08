@@ -65,6 +65,7 @@ export const deleteNotification = (id) => api.delete(`/notifications/${id}`);
 // Purchases
 export const createPurchase = (data) => api.post('/purchases', data);
 export const getAllPurchases = () => api.get('/purchases');
+export const updatePurchase = (id, data) => api.put(`/purchases/${id}`, data);
 export const deletePurchase = (id) => api.delete(`/purchases/${id}`);
 
 // Device Assignment History
