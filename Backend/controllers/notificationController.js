@@ -7,6 +7,10 @@ const Device = require('../models/Device');
 // @access  Private
 const getNotifications = async (req, res) => {
     try {
+        // Remove notifications older than 30 days before returning the list
+        const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        await Notification.deleteMany({ userId: req.user.id, createdAt: { $lt: cutoffDate } });
+
         // First, check for upcoming services and generate notifications
         await checkAndGenerateServiceNotifications(req.user.id);
 
