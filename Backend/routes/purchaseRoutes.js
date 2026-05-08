@@ -54,4 +54,29 @@ router.delete("/:id", protect, authorize('Admin'), async (req, res) => {
     }
 });
 
+// Update a purchase
+router.put("/:id", protect, authorize('Admin'), async (req, res) => {
+    try {
+        const { items } = req.body;
+        
+        const purchase = await Purchase.findById(req.params.id);
+        if (!purchase) return res.status(404).json({ error: "Purchase not found" });
+
+        if (items) {
+            purchase.items = items;
+        }
+
+        await purchase.save();
+        
+        const updatedPurchase = await Purchase.findById(req.params.id)
+            .populate('purchasedBy', 'name email')
+            .populate('items.assignedDevice', 'brand model assetTag')
+            .populate('items.assignedUser', 'name email');
+        
+        res.json(updatedPurchase);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 module.exports = router;

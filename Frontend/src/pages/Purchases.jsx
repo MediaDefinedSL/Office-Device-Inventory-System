@@ -4,7 +4,7 @@ import {
     Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, IconButton, Grid, Chip
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, ShoppingCart as ShoppingCartIcon } from '@mui/icons-material';
-import { getAllPurchases, createPurchase, deletePurchase, getAllUsers, getDevices } from '../services/api';
+import { getAllPurchases, createPurchase, deletePurchase, getAllUsers, getDevices, updatePurchase } from '../services/api';
 import SkeletonLoader from '../components/SkeletonLoader';
 import toast from 'react-hot-toast';
 
@@ -14,6 +14,7 @@ function Purchases() {
     const [devices, setDevices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingPurchaseId, setEditingPurchaseId] = useState(null);
     
     // Form State
     const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
@@ -64,7 +65,7 @@ function Purchases() {
 
     const handleSubmit = async () => {
         // Validation
-        if (!purchaseDate) return toast.error('Purchase date is required');
+        if (!purchaseDate && !editingPurchaseId) return toast.error('Purchase date is required');
         if (items.length === 0) return toast.error('At least one item is required');
         for (const item of items) {
             if (!item.itemName) return toast.error('Item name is required for all items');
@@ -84,14 +85,21 @@ function Purchases() {
                 }))
             };
             
-            await createPurchase(payload);
-            toast.success('Purchase recorded successfully');
+            if (editingPurchaseId) {
+                await updatePurchase(editingPurchaseId, { items: payload.items });
+                toast.success('Purchase updated successfully');
+            } else {
+                await createPurchase(payload);
+                toast.success('Purchase recorded successfully');
+            }
+            
             setIsModalOpen(false);
+            setEditingPurchaseId(null);
             resetForm();
             fetchData();
         } catch (error) {
-            console.error('Error creating purchase:', error);
-            toast.error('Failed to record purchase');
+            console.error('Error saving purchase:', error);
+            toast.error('Failed to save purchase');
         }
     };
 
@@ -100,6 +108,24 @@ function Purchases() {
         setVendor('');
         setInvoiceNumber('');
         setItems([{ itemName: '', category: 'Other', price: '', warrantyExpiryDate: '', assignedDevice: '', assignedUser: '', notes: '' }]);
+        setEditingPurchaseId(null);
+    };
+
+    const handleEdit = (purchase) => {
+        setEditingPurchaseId(purchase._id);
+        setPurchaseDate(new Date(purchase.purchaseDate).toISOString().split('T')[0]);
+        setVendor(purchase.vendor || '');
+        setInvoiceNumber(purchase.invoiceNumber || '');
+        setItems(purchase.items.map(item => ({
+            itemName: item.itemName,
+            category: item.category,
+            price: item.price,
+            warrantyExpiryDate: item.warrantyExpiryDate ? new Date(item.warrantyExpiryDate).toISOString().split('T')[0] : '',
+            assignedDevice: item.assignedDevice ? (typeof item.assignedDevice === 'object' ? item.assignedDevice._id : item.assignedDevice) : '',
+            assignedUser: item.assignedUser ? (typeof item.assignedUser === 'object' ? item.assignedUser._id : item.assignedUser) : '',
+            notes: item.notes || ''
+        })));
+        setIsModalOpen(true);
     };
 
     const handleDelete = async (id) => {
@@ -152,7 +178,10 @@ function Purchases() {
                                         Total: Rs. {purchase.totalCost}
                                     </Typography>
                                 </Box>
-                                <Button size="small" color="error" onClick={() => handleDelete(purchase._id)}>Delete</Button>
+                                <Box display="flex" gap={1}>
+                                    <Button size="small" variant="outlined" onClick={() => handleEdit(purchase)}>Edit</Button>
+                                    <Button size="small" variant="outlined" color="error" onClick={() => handleDelete(purchase._id)}>Delete</Button>
+                                </Box>
                             </Box>
                             
                             <TableContainer component={Paper} variant="outlined">
@@ -198,40 +227,46 @@ function Purchases() {
                 </Box>
             )}
 
-            {/* Add Purchase Modal */}
-            <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="md" fullWidth>
-                <DialogTitle sx={{ fontWeight: 'bold' }}>Record New Purchase</DialogTitle>
+            {/* Add/Edit Purchase Modal */}
+            <Dialog open={isModalOpen} onClose={() => { setIsModalOpen(false); setEditingPurchaseId(null); }} maxWidth="md" fullWidth>
+                <DialogTitle sx={{ fontWeight: 'bold' }}>
+                    {editingPurchaseId ? 'Edit Purchase Items' : 'Record New Purchase'}
+                </DialogTitle>
                 <DialogContent dividers>
-                    <Grid container spacing={2} mb={4}>
-                        <Grid item xs={12} sm={4}>
-                            <TextField 
-                                fullWidth label="Purchase Date" type="date" 
-                                InputLabelProps={{ shrink: true }}
-                                value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)}
-                            />
+                    {!editingPurchaseId && (
+                        <Grid container spacing={2} mb={4}>
+                            <Grid item xs={12} sm={4}>
+                                <TextField 
+                                    fullWidth label="Purchase Date" type="date" 
+                                    InputLabelProps={{ shrink: true }}
+                                    value={purchaseDate} onChange={e => setPurchaseDate(e.target.value)}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                                <TextField 
+                                    fullWidth
+                                    select
+                                    label="Vendor / Shop Name"
+                                    value={vendor}
+                                    onChange={e => setVendor(e.target.value)}
+                                >
+                                    <MenuItem value=""><em>Select vendor</em></MenuItem>
+                                    <MenuItem value="Kings laptop">Kings laptop</MenuItem>
+                                    <MenuItem value="RDF Computers">RDF Computers</MenuItem>
+                                </TextField>
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                                <TextField 
+                                    fullWidth label="Invoice Number" 
+                                    value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <TextField 
-                                fullWidth
-                                select
-                                label="Vendor / Shop Name"
-                                value={vendor}
-                                onChange={e => setVendor(e.target.value)}
-                            >
-                                <MenuItem value=""><em>Select vendor</em></MenuItem>
-                                <MenuItem value="Kings laptop">Kings laptop</MenuItem>
-                                <MenuItem value="RDF Computers">RDF Computers</MenuItem>
-                            </TextField>
-                        </Grid>
-                        <Grid item xs={12} sm={4}>
-                            <TextField 
-                                fullWidth label="Invoice Number" 
-                                value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)}
-                            />
-                        </Grid>
-                    </Grid>
+                    )}
 
-                    <Typography variant="h6" fontWeight="bold" mb={2}>Purchased Items</Typography>
+                    <Typography variant="h6" fontWeight="bold" mb={2}>
+                        {editingPurchaseId ? 'Update Item Assignments' : 'Purchased Items'}
+                    </Typography>
                     
                     {items.map((item, index) => (
                         <Paper key={index} sx={{ p: 2, mb: 2, bgcolor: 'grey.50', border: '1px solid #e2e8f0' }} elevation={0}>
@@ -294,13 +329,17 @@ function Purchases() {
                         </Paper>
                     ))}
                     
-                    <Button variant="outlined" startIcon={<AddIcon />} onClick={handleAddItem} sx={{ mt: 1 }}>
-                        Add Another Item
-                    </Button>
+                    {!editingPurchaseId && (
+                        <Button variant="outlined" startIcon={<AddIcon />} onClick={handleAddItem} sx={{ mt: 1 }}>
+                            Add Another Item
+                        </Button>
+                    )}
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setIsModalOpen(false)} color="inherit">Cancel</Button>
-                    <Button onClick={handleSubmit} variant="contained" color="primary">Save Purchase</Button>
+                    <Button onClick={() => { setIsModalOpen(false); setEditingPurchaseId(null); }} color="inherit">Cancel</Button>
+                    <Button onClick={handleSubmit} variant="contained" color="primary">
+                        {editingPurchaseId ? 'Update Purchase' : 'Save Purchase'}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>
