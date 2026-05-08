@@ -279,6 +279,7 @@ function TicketManagement() {
                                     <MenuItem key={purchase._id} value={purchase._id}>
                                         {purchase.invoiceNumber ? `Invoice: ${purchase.invoiceNumber}` : 'Purchase'} 
                                         {purchase.vendor && ` from ${purchase.vendor}`} 
+                                        {purchase.items?.length > 0 && ` — ${purchase.items.map(item => item.itemName).join(', ')}`}
                                         {` - Rs.${purchase.totalCost} on ${new Date(purchase.purchaseDate).toLocaleDateString()}`}
                                     </MenuItem>
                                 ))}
