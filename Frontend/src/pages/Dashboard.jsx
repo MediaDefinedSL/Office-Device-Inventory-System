@@ -7,7 +7,8 @@ import {
     Devices as DevicesIcon,
     CheckCircle as ActiveIcon,
     Add as AddIcon,
-    FilterList as FilterIcon
+    FilterList as FilterIcon,
+    Build as BuildIcon
 } from '@mui/icons-material';
 import { getDashboardAnalytics, getRecentServiceLogs, getUpcomingServiceLogs, getDevicesUnderRepair, getDevices, getAllServiceLogs } from '../services/api';
 import { Warning as WarningIcon, Engineering as EngineeringIcon, AccessTime as AccessTimeIcon, Shield as ShieldIcon } from '@mui/icons-material';
